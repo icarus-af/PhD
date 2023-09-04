@@ -43,8 +43,6 @@ plt.rcParams['font.size'] = 15
 
 colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF' , '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252']
 
-
-
 ## 6 cores ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
 
 ## 6 cores ['preto', 'vermelho', 'amarelo', 'verde', 'azul', 'rosa']
@@ -264,7 +262,7 @@ def peaks(tech, sep, reps, scan, b, Emax, Emin):
     print('='*50)
     print('='*50)
     
-    return 
+    return peaks
 
 #%% OUTLIER TEST
 
@@ -315,47 +313,13 @@ def remove_outliers(data, n):
         data = np.delete(data, posmax)
     return data
 
-data = pd.read_csv('testeariel.txt', sep=' ')
-
-ox = np.array(data['ox'])
-red = np.array(data['red'])
-dE = np.array(data['dE'])
-ioveri = ox/-red
-
-my_dict = {'ox': ox/max(ox), 'red': red/min(red), 'dE': dE/max(dE), 'ioveri': ioveri/max(ioveri)}
-fig, ax = plt.subplots()
-ax.boxplot(my_dict.values())
-ax.set_xticklabels(my_dict.keys())
-
-n = ESD_Test(red, 0.05, 5)
-
-# newdata = remove_outliers(data, n)
-
-#%%
-Gcal, x = grubbs_stat(dE)
-
-Gcrit = calculate_critical_value(len(dE), 0.05)
-
-#%% CHOOSE COLORS
-reps = 10
-
-if reps < 7:
-
-    colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
-
-else:
+def boxplots(my_dict):
     
-    colors = plt.get_cmap('rainbow')(np.linspace(0, 1, reps))
-
-# colors=['#FF5252']*60
-#%% RUN LOOP (tech, sep, reps, scan, b, Emax, Emin)
-
-peaks('cv', '	', reps, 2, 'f', .9, -.4)
-
-#%% RUN INDIVIDUAL (item, sep, tech, scan, b, Emax, Emin)
-
-plot(2, '	', 'cv', 2, 'f', 0, -.2)
-plot(3, '	', 'cv', 2, 'f', 0, -.2)
+    fig, ax = plt.subplots()
+    ax.boxplot(my_dict.values())
+    ax.set_xticklabels(my_dict.keys())
+    
+    return fig
 
 
 #%% Linear regression modelling
@@ -395,149 +359,3 @@ def reg_model(y, x, method, errors):
     
     return model, coefs, r2, r2_adj
 
-### Original data
-
-df = pd.read_csv('dadosjou.csv')
-
-### Copy of original data
-
-data = df
-
-### Parameters: xs, ys and errors
-
-x1 = data['x']
-
-y1 = data['y']/data['y'].max()
-err = data['std']
-
-### Creating final matrix 
-
-X_final = pd.DataFrame([x1]).T
-
-### Adding intercept
-
-X_final = sm.add_constant(X_final)
-
-### Scaling the final matrix
-
-# X_final_scaled, X_poly_final_scaled, scaler = poly_scale(X_final, 2)
-
-### Selecting specific polynomial terms 
-
-# select = list([0,1])
-
-### Actual modelling
-# model_final, coefs_sm, r2, r2_adj = reg_model( y1, X_final, 'OLS')
-model_final, coefs_sm, r2, r2_adj = reg_model( y1, X_final, 'WLS', err)
-
-
-### Graphing linear regression
-
-x = np.linspace(0, 5000, 400)
-yy = coefs_sm[0] + coefs_sm[1]*x
-
-plt.scatter(x1,y1, color='black')
-plt.plot(x, yy, color='red')
-# plt.title('{} Hz / {} mV'.format(data['freq'][number], data['amp'][number]))
-
-plt.ylabel('Sinal / cps')
-# plt.ylim(-210,140)
-plt.xlabel('Concentração / ppb')
-
-
-
-
-#%%
-
-
-peaks = np.array([plot(item) for item in [0,1,4]])
-
-#%%
-
-peaks = np.array([plot(item) for item in [2,3,5]])
-
-#%%
-
-for i in np.arange(500):
-    
-    print(stats.t.ppf(1-0.025, i-1)/(i**0.5))
-    
-#%% PCA modelling
-
-#Load dataset
-data = pd.read_csv('Cu.csv')
-data.set_index('0', inplace=True)
-
-#Centering
-scaled_data = preprocessing.scale(data)
-
-pca = PCA()
-# pca.fit(scaled_data)
-pca_data = pca.fit_transform(scaled_data)
-
-per_var = np.round(pca.explained_variance_ratio_* 100, decimals=1)
-labels = ['PC' + str(x) for x in range(1, len(per_var)+1)]
-
-plt.bar(x=range(1,len(per_var)+1), height=per_var, tick_label=labels)
-plt.ylabel('Percentage of Explained Variance')
-plt.xlabel('Principal Component')
-plt.title('Scree Plot')
-plt.show()
-
-pca_df = pd.DataFrame(pca_data, index=list(data.index), columns=labels)
- 
-plt.scatter(pca_df.PC1, pca_df.PC2, color='#343E3D')
-
-plt.axhline(0, -100, 100, color='#FF5252', alpha=.5)
-plt.axvline(0, -100, 100, color='#FF5252', alpha=.5)
-
-plt.xlabel('PC1 - {0}%'.format(per_var[0]))
-plt.ylabel('PC2 - {0}%'.format(per_var[1]))
- 
-for sample in pca_df.index:
-    for i in range(3):
-
-        plt.annotate(sample, (pca_df.PC1.loc[sample][i], pca_df.PC2.loc[sample][i]), fontsize=9)
-
- 
-plt.show()
-#%%
- ## 6 cores ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
-
- ## 6 cores ['preto', 'vermelho', 'amarelo', 'verde', 'azul', 'rosa']
-
-#########################
-#
-# Determine which genes had the biggest influence on PC1
-#
-#########################
- 
-## get the name of the top 10 measurements (genes) that contribute
-## most to pc1.
-## first, get the loading scores
-loading_scores = pd.Series(pca.components_[0], index=np.arange(0,1000))
-## now sort the loading scores based on their magnitude
-sorted_loading_scores = loading_scores.abs().sort_values(ascending=False)
- 
-# get the names of the top 10 genes
-top_10_genes = sorted_loading_scores[0:100].index.values
- 
-## print the gene names and their scores (and +/- sign)
-print(loading_scores[top_10_genes])
-
-#%%
-
-import umap
-
-reducer = umap.UMAP(5)
-
-embedding = reducer.fit_transform(pca_data)
-
-#%%
-
-plt.scatter(
-    embedding[:, 0],
-    embedding[:, 1],
-    c=['red', 'red', 'red', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow'])
-plt.gca().set_aspect('equal', 'datalim')
-plt.title('UMAP projection of the Penguin dataset', fontsize=24);
