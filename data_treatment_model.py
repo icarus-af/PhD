@@ -32,8 +32,10 @@ from matplotlib import rcParams
 from uncertainties import ufloat
 from uncertainties.umath import *
 
-rcParams['font.family'] = 'sans-serif'
-rcParams['font.sans-serif'] = ['Lato']
+from itertools import combinations
+
+# rcParams['font.family'] = 'sans-serif'
+# rcParams['font.sans-serif'] = ['Lato']
 rcParams['axes.labelpad'] = 15
 plt.rcParams['font.size'] = 12
 
@@ -78,23 +80,24 @@ def poly_scale(df, degree):
     
     return df_scaled, df_poly_scaled, scaler
 
-def reg_model(y, x):
+def reg_model(y, x, method, errors):
+    """
+    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
+    """
+    if method == 'OLS':
     
-    model = sm.OLS(y, x).fit()
-    coefs = np.array(model.params)
+        model = sm.OLS(y, x).fit()
+        
+    elif method == 'OLS':
+        
+        weights =  1/(err**2)
+        model = sm.WLS(y, x, weights=weights).fit()
+        
+    coefs = np.array(model.params)    
     r2 = model.rsquared
     r2_adj = model.rsquared_adj
     
-    return model, coefs, r2, r2_adj
-
-def reg_model_WLS(y, x, err):
-    
-    weights =  1/(err**2)
-    
-    model = sm.WLS(y, x, weights=weights).fit()
-    coefs = np.array(model.params)
-    r2 = model.rsquared
-    r2_adj = model.rsquared_adj
+    print(model.summary())
     
     return model, coefs, r2, r2_adj
 
@@ -140,51 +143,6 @@ def get_max(surface, X, Y, scaler):
     pos_unscaled = scaler.inverse_transform(position_df) 
     
     return pos_unscaled[0]
-
-def data_table(table1, table2, table3):  
-    
-    
-
-    return dash_table.DataTable(columns=[{"name": i, "id": i} for i in table1.columns],
-                      data=table1.to_dict('records'),
-                      
-                      style_cell={'textAlign': 'center', 'backgroundColor': '#343E3D', 'color': '#FFFFFF', 'fontWeight': 'bold'},
-                      style_header={'textAlign': 'center', 'backgroundColor': 'black'},
-                      
-
-                      
-                         ),
-    dash_table.DataTable(columns=[{"name": i, "id": i} for i in table2.columns],
-                      data=table2.to_dict('records') ,
-                      
-                      style_cell={'textAlign': 'center', 'backgroundColor': '#343E3D', 'color': '#FFFFFF', 'fontWeight': 'bold'},
-                      style_header={'textAlign': 'center', 'backgroundColor': 'black'},
-                 
-                      
-                      style_data_conditional=(
-                          
-                          [
-                              {
-                                  'if': {
-                                      'filter_query': '{P>|t|} > 0.05',
-                                      
-                                  },
-                              'color':'#FF5252'
-                              
-                              },
-                                          
-                          
-                          ]
-                          
-                          )  
-                         ),
-    dash_table.DataTable(columns=[{"name": i, "id": i} for i in table3.columns],
-                      data=table3.to_dict('records'), 
-                      style_cell={'textAlign': 'center', 'backgroundColor': '#343E3D', 'color': '#FFFFFF', 'fontWeight': 'bold'},
-                      style_header={'textAlign': 'center', 'backgroundColor': 'black'},
-                         
-                      
-                        )
     
 
 #%% Funções Específicas
@@ -238,7 +196,6 @@ def up_layout(fig, title, x, y):
     return
 #%%
 
-
 def score_graph(df, err, title):
     
     x = np.arange(0, 33, 1)
@@ -275,17 +232,94 @@ def score_graph(df, err, title):
 
 #%%
 
-allcoefs_3 = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34}
-allcoefs_2 = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14}
-allcoefs_3_2 = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9}
+def get_allcoefs(n, m):
+    
+    if n == 1:
+        
+        if m == 1:
+            
+            allcoefs = {0,  1}
+ 
+        elif m == 2:
+            
+            allcoefs = {0,  1,  2}
+            
+        elif m == 3:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5}
+            
+    if n == 2:
+        
+        if m == 1:
+            
+            allcoefs = {0,  1,  2}
+            
+        elif m == 2:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5}
+            
+        elif m == 3:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9}
+            
+    if n == 3:
+        
+        if m == 1:
+            
+            allcoefs = {0,  1,  2, 3}
+            
+        elif m == 2:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9}
+            
+        elif m == 3:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
+            
+    if n == 4:
+        
+        if m == 1:
+            
+            allcoefs = {0,  1,  2, 3, 4}
+            
+        elif m == 2:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14}
+            
+        elif m == 3:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34}        
+        
+    return allcoefs     
 
+allcoefs = list(get_allcoefs(4,1))
+#%%
+def ff(n, m, x1, coefs):
 
-def fun1_1(x1, coefs):
-    z = coefs[0] + coefs[1]*x1
-    return z
+    if n == 1:
+        
+        if m == 1:
+        
+            def fun(x1, coefs):
+                return coefs[0] + coefs[1]*x1
+            
+        elif m == 2:
+            
+            def fun(x1, coefs):
+                return coefs[0] + coefs[1]*x1 + coefs[2]*x1*x1
+            
+        elif m == 3:
+            
+            def fun(x1, coefs):
+                return coefs[0] + coefs[1]*x1 + coefs[2]*x1*x1 + coefs[3]*x1*x1*x1
+            
+    return fun(x1, coefs)      
 
-def fun1_2(x1, coefs):
-    z = coefs[0] + coefs[1]*x1 + coefs[2]*x1*x1
+ff(1, 1, 2, coefs)
+
+#%%      
+def fun2_1(x1, x2, coefs):
+    z = coefs[0] + coefs[1]*x1 + coefs[2]*x2
     return z
 
 def fun2_2(x,y, coefs):
@@ -305,11 +339,73 @@ def fun_3_2(x1,x2,x3,coefs):
 def fun_3_3(x1,x2,x3,coefs):
     return  coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x1*x1 + coefs[5]*x1*x2 + coefs[6]*x1*x3 + coefs[7]*x2*x2 + coefs[8]*x2*x3 + coefs[9]*x3*x3 + coefs[10]*x1*x1*x1 + coefs[11]*x1*x1*x2 + coefs[12]*x1*x1*x3 + coefs[13]*x1*x2*x2 + coefs[14]*x1*x2*x3 + coefs[15]*x1*x3*x3 + coefs[16]*x2*x2*x2 + coefs[17]*x2*x2*x3 + coefs[18]*x2*x3*x3 + coefs[19]*x3*x3*x3 
 
+def fun4_1(x1, x2, x3, x4, coefs):
+    z = coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3  + coefs[4]*x4
+    return z
+
 def fun_4_2(x1, x2, x3, x4, coefs):
     return coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x4 + coefs[5]*x1*x1 + coefs[6]*x1*x2 + coefs[7]*x1*x3 + coefs[8]*x1*x4 + coefs[9]*x2*x2 + coefs[10]*x2*x3 + coefs[11]*x2*x4 + coefs[12]*x3*x3 + coefs[13]*x3*x4 + coefs[14]*x4*x4
  
 def fun_4_3(x1, x2, x3, x4, coefs):
         return coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x4 + coefs[5]*x1*x1 + coefs[6]*x1*x2 + coefs[7]*x1*x3 + coefs[8]*x1*x4 + coefs[9]*x2*x2 + coefs[10]*x2*x3 + coefs[11]*x2*x4 + coefs[12]*x3*x3 + coefs[13]*x3*x4 + coefs[14]*x4*x4 + coefs[15]*x1*x1*x1 + coefs[16]*x1*x1*x2 + coefs[17]*x1*x1*x3 + coefs[18]*x1*x1*x4 + coefs[19]*x1*x2*x2 + coefs[20]*x1*x2*x3 + coefs[21]*x1*x2*x4 + coefs[22]*x1*x3*x3 + coefs[23]*x1*x3*x4 + coefs[24]*x1*x4*x4 + coefs[25]*x2*x2*x2 + coefs[26]*x2*x2*x3 + coefs[27]*x2*x2*x4 + coefs[28]*x2*x3*x3 + coefs[29]*x2*x3*x4 + coefs[30]*x2*x4*x4 + coefs[31]*x3*x3*x3 + coefs[32]*x3*x3*x4 + coefs[33]*x3*x4*x4 + coefs[34]*x4*x4*x4
+    
+#%%
+def get_r2adj(y, x, method, errors):
+    """
+    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (r2_adj)
+    """
+    if method == 'OLS':
+    
+        model = sm.OLS(y, x).fit()
+        
+    elif method == 'WLS':
+        
+        weights =  1/(errors**2)
+        model = sm.WLS(y, x, weights=weights).fit()
+
+    r2_adj = model.rsquared_adj
+
+    return r2_adj 
+
+def get_combinations_with_zero(lst):
+    result = []
+    for r in range(1, len(lst) + 1):
+        for combo in combinations(lst, r):
+            if 0 in combo:
+                result.append(list(combo))
+    return result
+
+
+
+def find_max_r2adj(n, m, method, errors, y1, X_poly_final_scaled):
+    
+    try_all = get_combinations_with_zero(get_allcoefs(n, m))
+    
+    alltests = np.array([[get_r2adj( y1, X_poly_final_scaled[:, i], method, errors), i] for i in try_all]).T
+
+    r2_adjs = alltests[0]
+    selects = alltests[1]
+
+    higher = r2_adjs[r2_adjs > r2_adjs.max()*0.95]
+    higher_selects = selects[r2_adjs > r2_adjs.max()*0.95]
+    
+    print('====== Top 5% Adj-R2 ======')
+    print(higher_selects)
+    print(higher)
+    print("="*50)
+    
+    ax = plt.gca()
+
+    plt.scatter(np.arange(0, len(higher)), higher, color="#343E3D")
+    plt.xticks(np.arange(0, len(higher_selects)), rotation=20)
+    ax.set_xticklabels(higher_selects)
+    plt.ylabel("Adjusted-$R^2$")
+    
+    
+    
+    return 
+
+find_max_r2adj(2, 3, "OLS", 0, y1, X_poly_final_scaled)
     
 #%%
 
@@ -329,10 +425,6 @@ df = pd.read_csv('DOE-opt-swv-3Dpen.csv')
 
 # print(df)
 
-def fun3(x,y, coefs):
-    z = coefs[0] + coefs[1]*x*x + coefs[2]*x*x*x + coefs[3]*x*x*y
-    return z
-
 #%%
 data = df
 
@@ -345,37 +437,37 @@ x3 = data['step']
 y1 = data['I']
 # err = data['std']
 # err = np.array([df['dE_std'].min()]*17)
-# y1 = y1/y1.max()
 
 X_final = pd.DataFrame([x1, x2]).T
 
-X_final_scaled, X_poly_final_scaled, scaler = poly_scale(X_final, 3)
+n = 2
+m = 3
 
-# select = [0,1,2]
-select = [0,3,6,7]
-# select = list([0,1,4,5]) ## todos
-# select = list([0,2,3,4,5,6,7,8,9,10,12,13,14,16,17,18,19])
+X_final_scaled, X_poly_final_scaled, scaler = poly_scale(X_final, m)
 
+find_max_r2adj(2, 3, "OLS", 0, y1, X_poly_final_scaled)
 
-model_final, coefs_sm, r2, r2_adj = reg_model( y1, X_poly_final_scaled[:,select])
+select = [0, 3, 6, 7]
+
+model_final, coefs_sm, r2, r2_adj = reg_model( y1, X_poly_final_scaled[:,select], 'OLS', 0)
 # model_final, coefs_sm, r2, r2_adj = reg_model_WLS( y1, X_poly_final_scaled[:,select], err)
 
-print(model_final.summary())
+diff = get_allcoefs(n, m).difference(select)
 
-diff = allcoefs_2.difference(select)
-
-coefs = np.zeros(35)
+coefs = np.zeros(len(get_allcoefs(n, m)))
 
 for i in diff:
     coefs[i] = 0
 for i in np.arange(0, len(select)):
-    coefs[select[i]] = coefs[i]
+    coefs[select[i]] = coefs_sm[i]
     
 effects = np.abs(coefs_sm)/(np.sum(np.abs(coefs_sm))-coefs_sm[0])*100
 
 print('')
 print("="*78)
 print('effects = ', effects)
+print("="*78)
+print('coefs = ', coefs)
 print("="*78)
 print('')
 
@@ -401,6 +493,8 @@ y1 = data['I']
 X_final = pd.DataFrame([x1, x2]).T
 
 X_final_scaled, X_poly_final_scaled, scaler = poly_scale(X_final, 3)
+
+
 
 select = [0,1,2]
 select = [0,3,6,7]

@@ -62,7 +62,10 @@ my_dict = {'ox': ox/max(ox), 'red': red/min(red), 'dE': dE/max(dE), 'ioveri': io
 
 bxplt = boxplots(my_dict)
 
-n = ESD_Test(red, 0.05, 5)
+#for Grubbs test n = 1
+#for ESD         n > 1
+
+n = ESD_Test(red, 0.05, n)
 
 # newdata = remove_outliers(data, n)
 
@@ -70,18 +73,6 @@ Gcal, x = grubbs_stat(dE)
 
 Gcrit = calculate_critical_value(len(dE), 0.05)
 
-#%% CHOOSE COLORS
-reps = 10
-
-if reps < 7:
-
-    colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
-
-else:
-    
-    colors = plt.get_cmap('rainbow')(np.linspace(0, 1, reps))
-
-# colors=['#FF5252']*60
 #%% RUN LOOP (tech, sep, reps, scan, b, Emax, Emin)
 
 peaks('cv', '	', reps, 2, 'f', .9, -.4)
@@ -91,6 +82,57 @@ peaks('cv', '	', reps, 2, 'f', .9, -.4)
 plot(2, '	', 'cv', 2, 'f', 0, -.2)
 plot(3, '	', 'cv', 2, 'f', 0, -.2)
 
-#%%
+#%% RUN LOOP
 
 peaks = np.array([plot(item) for item in [0,1,4]])
+
+#%% For data_treatment_model
+
+# Read your data
+data = df
+
+# State your variables, responses and errors
+
+x1 = data['freq']
+x2 = data['amp']
+x3 = data['step']
+
+y1 = data['I']
+
+# err = data['std']
+# err = np.array([df['dE_std'].min()]*17)
+# y1 = y1/y1.max()
+
+# Scale and finalize X matrix
+
+X_final = pd.DataFrame([x1, x2]).T
+
+X_final_scaled, X_poly_final_scaled, scaler = poly_scale(X_final, 3)
+
+# Select final variables
+
+select = [0,2,3,4,5,6,7,8,9,10,12,13,14,16,17,18,19]
+
+# Calculate model and get parameters
+
+model_final, coefs_sm, r2, r2_adj = reg_model( y1, X_poly_final_scaled[:,select], 'OLS', err)
+
+print(model_final.summary())
+
+diff = allcoefs_2.difference(select)
+
+coefs = np.zeros(35)
+
+for i in diff:
+    coefs[i] = 0
+for i in np.arange(0, len(select)):
+    coefs[select[i]] = coefs[i]
+    
+effects = np.abs(coefs_sm)/(np.sum(np.abs(coefs_sm))-coefs_sm[0])*100
+
+print('')
+print("="*78)
+print('effects = ', effects)
+print("="*78)
+print('')
+
