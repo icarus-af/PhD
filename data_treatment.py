@@ -54,11 +54,18 @@ def getcm(n, cmap):
     Gets a sequence of n colors from cmap
     """
     
-    colors = plt.get_cmap(cmap)(np.linspace(0, 1, n))
+    if n == 6:
+
+        colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
+
+    else:
+        
+        colors = plt.get_cmap(cmap)(np.linspace(0, 1, n))
+
     
     return colors
 
-def plot(item, sep, tech, scan, b, Emax, Emin):
+def plot(item, sep, tech, scan, b, Emax, Emin, colors):
     """
     Reads an {item}.txt file filtered by {scan} column and outputs {peak_o, peak_r, ioveri, dEp}
     Different conditions based on {tech} = 'cv' or 'swv'
@@ -168,20 +175,23 @@ def plot(item, sep, tech, scan, b, Emax, Emin):
     
     return peak_o, peak_r, ioveri, dEp
 
-def peaks(tech, sep, reps, scan, b, Emax, Emin):
+def peaks(tech, sep, reps, scan, b, Emax, Emin, cmap):
     """
     Runs a loop of plots() functions and prints the results accordingly
+    colors         = use getcm() to determine colors
     """
+    
+    colors = getcm(reps, cmap)
     
     t = stats.t.ppf(1-0.025, reps-1)
     
     if b == 'b':
         
-        peaks = np.array( [plot(item, sep, tech, scan, 'b', Emax, Emin) for item in np.arange(0,reps)] ).T
+        peaks = np.array( [plot(item, sep, tech, scan, 'b', Emax, Emin, colors) for item in np.arange(0,reps)] ).T
     
     else: 
         
-        peaks = np.array( [plot(item, sep, tech, scan, 0, Emax, Emin) for item in np.arange(0,reps)] ).T
+        peaks = np.array( [plot(item, sep, tech, scan, 0, Emax, Emin, colors) for item in np.arange(0,reps)] ).T
     
     anodic = peaks[0]
     
