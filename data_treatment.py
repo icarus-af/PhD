@@ -41,7 +41,8 @@ plt.rcParams['font.size'] = 15
 # plt.rcParams["axes.labelweight"] = "bold"
 # plt.rcParams["font.weight"] = "bold"
 
-colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF' , '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252', '#FF5252']
+colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF' , '#FF5252']
+black, red, yellow, green, blue, pink = '#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF'
 
 ## 6 cores ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
 
@@ -52,8 +53,7 @@ colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF' , '#F
 def getcm(n, cmap):
     """
     Gets a sequence of n colors from cmap
-    """
-    
+    """    
     if n == 6:
 
         colors = ['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF']
@@ -61,7 +61,6 @@ def getcm(n, cmap):
     else:
         
         colors = plt.get_cmap(cmap)(np.linspace(0, 1, n))
-
     
     return colors
 
@@ -76,7 +75,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
     # Read data for Cyclic Voltammetry analysis
     if tech == 'cv':
     
-        df = pd.read_csv("{}.txt".format(item), sep=sep)
+        df = pd.read_csv(f'{item}-a.txt', sep=sep)
         
         if 'Scan' in df.columns:
         
@@ -88,7 +87,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
           
         if b == 'b':
             
-            df_b = pd.read_csv("{}-b.txt".format(item), sep=sep)
+            df_b = pd.read_csv(f"{item}-b.txt", sep=sep)
             
             if 'Scan' in df_b.columns:
             
@@ -101,7 +100,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
     
     elif tech == 'swv':
         
-        df = pd.read_csv("{}.txt".format(item), sep=sep)
+        df = pd.read_csv(f'{item}-a.txt', sep=sep)
         
         if 'Scan' in df.columns:
         
@@ -113,7 +112,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
           
         if b == 'b':
             
-            df_b = pd.read_csv("{}-b.txt".format(item), sep=sep)
+            df_b = pd.read_csv(f'{item}-b.txt', sep=sep)
             
             if 'Scan' in df_b.columns:
             
@@ -331,41 +330,11 @@ def boxplots(my_dict):
     
     return fig
 
+#%%
 
-#%% Linear regression modelling
+colors = getcm(19, 'PuBuGn')
+#%%
+peaks('swv',',',19,1,'b',1.25,.75,'viridis')
 
-def poly_scale(df, degree):
-    """
-    Scales an dataframe for the nth {degree}
-    """
-    
-    poly = PolynomialFeatures(degree=degree)
-    scaler = MinMaxScaler()
-    
-    df_scaled = scaler.fit_transform(df)
-    
-    df_poly_scaled = poly.fit_transform(df_scaled)
-    
-    return df_scaled, df_poly_scaled, scaler
-
-def reg_model(y, x, method, errors):
-    """
-    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
-    """
-    if method == 'OLS':
-    
-        model = sm.OLS(y, x).fit()
-        
-    elif method == 'OLS':
-        
-        weights =  1/(err**2)
-        model = sm.WLS(y, x, weights=weights).fit()
-        
-    coefs = np.array(model.params)    
-    r2 = model.rsquared
-    r2_adj = model.rsquared_adj
-    
-    print(model.summary())
-    
-    return model, coefs, r2, r2_adj
+peaks('csv',)
 

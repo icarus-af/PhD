@@ -28,6 +28,8 @@ pio.renderers.default='browser'
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
 
 from uncertainties import ufloat
 from uncertainties.umath import *
@@ -69,6 +71,13 @@ def add_Scatter(fig, df, color, name):
     
     return
 
+def scale(df):
+    
+    scaler = MinMaxScaler()
+    
+    df_scaled = scaler.fit_transform(df)
+    
+    return df_scaled
 
 def poly_scale(df, degree):
     
@@ -81,7 +90,7 @@ def poly_scale(df, degree):
     
     return df_scaled, df_poly_scaled, scaler
 
-def reg_model(y, x, method, err=None):
+def reg_model(y, x, method='OLS', err=None):
     """
     Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
     """
@@ -248,7 +257,7 @@ def get_allcoefs(n, m):
             
         elif m == 3:
             
-            allcoefs = {0,  1,  2,  3,  4,  5}
+            allcoefs = {0,  1,  2,  3}
             
     if n == 2:
         
@@ -290,7 +299,11 @@ def get_allcoefs(n, m):
             
         elif m == 3:
             
-            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34}        
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34}      
+            
+        elif m == 4:
+            
+            allcoefs = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69}  
         
     return allcoefs     
 
@@ -339,9 +352,8 @@ def allfun(n, m, X, coefs):
             def fun(X, coefs):
                 
                 x1 = X[0]
-                print(x1)
                 x2 = X[1]
-                print(x2)
+
                 return coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x1*x1 + coefs[4]*x1*x2 + coefs[5]*x2*x2 + coefs[6]*x1*x1*x1 + coefs[7]*x1*x1*x2 + coefs[8]*x1*x2*x2 + coefs[9]*x2*x2*x2
             
     elif n == 3:
@@ -354,7 +366,7 @@ def allfun(n, m, X, coefs):
                 x3 = X[2]
                 return coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3
             
-        elif m == 2:
+        elif m == 2: 
             
             def fun(X, coefs):
                 x1 = X[0]
@@ -401,8 +413,19 @@ def allfun(n, m, X, coefs):
 
                 return coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x4 + coefs[5]*x1*x1 + coefs[6]*x1*x2 + coefs[7]*x1*x3 + coefs[8]*x1*x4 + coefs[9]*x2*x2 + coefs[10]*x2*x3 + coefs[11]*x2*x4 + coefs[12]*x3*x3 + coefs[13]*x3*x4 + coefs[14]*x4*x4 + coefs[15]*x1*x1*x1 + coefs[16]*x1*x1*x2 + coefs[17]*x1*x1*x3 + coefs[18]*x1*x1*x4 + coefs[19]*x1*x2*x2 + coefs[20]*x1*x2*x3 + coefs[21]*x1*x2*x4 + coefs[22]*x1*x3*x3 + coefs[23]*x1*x3*x4 + coefs[24]*x1*x4*x4 + coefs[25]*x2*x2*x2 + coefs[26]*x2*x2*x3 + coefs[27]*x2*x2*x4 + coefs[28]*x2*x3*x3 + coefs[29]*x2*x3*x4 + coefs[30]*x2*x4*x4 + coefs[31]*x3*x3*x3 + coefs[32]*x3*x3*x4 + coefs[33]*x3*x4*x4 + coefs[34]*x4*x4*x4
             
-    return fun(X, coefs)      
+        elif m == 4:
+            
+            def fun(X, coefs):
+            
+                x1 = X[0]
+                x2 = X[1]
+                x3 = X[2]
+                x4 = X[3]
 
+                return (coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x4 +  coefs[5]*x1*x1 +coefs[6]*x1*x2 + coefs[7]*x1*x3 + coefs[8]*x1*x4 + coefs[9]*x2*x2 + coefs[10]*x2*x3 + coefs[11]*x2*x4 +             coefs[12]*x3*x3 + coefs[13]*x3*x4 + coefs[14]*x4*x4 +           coefs[15]*x1*x1*x1 +coefs[16]*x1*x1*x2 + coefs[17]*x1*x1*x3 + coefs[18]*x1*x1*x4 +            coefs[19]*x1*x2*x2 + coefs[20]*x1*x2*x3 + coefs[21]*x1*x2*x4 +             coefs[22]*x1*x3*x3 + coefs[23]*x1*x3*x4 +             coefs[24]*x1*x4*x4 +             coefs[25]*x2*x2*x2 + coefs[26]*x2*x2*x3 +coefs[27]*x2*x2*x4 +             coefs[28]*x2*x3*x3 + coefs[29]*x2*x3*x4 +            coefs[30]*x2*x4*x4 +             coefs[31]*x3*x3*x3 + coefs[32]*x3*x3*x4 +             coefs[33]*x3*x4*x4 +            coefs[34]*x4*x4*x4 +            coefs[35]*x1*x1*x1*x1 + coefs[36]*x1*x1*x1*x2 +coefs[37]*x1*x1*x1*x3 + coefs[38]*x1*x1*x1*x4 +             coefs[39]*x1*x1*x2*x2 + coefs[40]*x1*x1*x2*x3 + coefs[41]*x1*x1*x2*x4 +             coefs[42]*x1*x1*x3*x3 + coefs[43]*x1*x1*x3*x4 +             coefs[44]*x1*x1*x4*x4 +             coefs[45]*x1*x2*x2*x2 + coefs[46]*x1*x2*x2*x3 + coefs[47]*x1*x2*x2*x4 +             coefs[48]*x1*x2*x3*x3 + coefs[49]*x1*x2*x3*x4 +             coefs[50]*x1*x2*x4*x4 +             coefs[51]*x1*x3*x3*x3 + coefs[52]*x1*x3*x3*x4 +             coefs[53]*x1*x3*x4*x4 +             coefs[54]*x1*x4*x4*x4 +             coefs[55]*x2*x2*x2*x2 + coefs[56]*x2*x2*x2*x3 + coefs[57]*x2*x2*x2*x4 +             coefs[58]*x2*x2*x3*x3 + coefs[59]*x2*x2*x3*x4 +             coefs[60]*x2*x2*x4*x4 +           coefs[61]*x2*x3*x3*x3 + coefs[62]*x2*x3*x3*x4 +             coefs[63]*x2*x3*x4*x4 +             coefs[64]*x2*x4*x4*x4 +             coefs[65]*x3*x3*x3*x3 + coefs[66]*x3*x3*x3*x4 +             coefs[67]*x3*x3*x4*x4 +             coefs[68]*x3*x4*x4*x4 +             coefs[69]*x4*x4*x4*x4        )
+            
+    return fun(X, coefs)      
+##36, 39, 45, 49(HUGE?), 56, 58,61
 #%%
 # def main_fun_calculator(n, m, X, coefs):
 
@@ -481,10 +504,10 @@ def find_max_r2adj(n, m, method, Y, X_poly_final_scaled, err=None):
         r2_adjs.append(r2_adj)
         selects.append(i)
 
-    higher = [r2 for r2, select in zip(r2_adjs, selects) if r2 > max(r2_adjs) * 0.95]
-    higher_selects = [select for r2, select in zip(r2_adjs, selects) if r2 > max(r2_adjs) * 0.95]
+    higher = [r2 for r2, select in zip(r2_adjs, selects) if r2 > max(r2_adjs) * 0.995]
+    higher_selects = [select for r2, select in zip(r2_adjs, selects) if r2 > max(r2_adjs) * 0.995]
     
-    print('====== Top 5% Adj-R2 ======')
+    print('====== Top 2% Adj-R2 ======')
     print(higher_selects)
     print(higher)
     print("=" * 50)
@@ -530,12 +553,11 @@ def pareto_chart(n, m, coefs, r2_adj, select=None):
 
     return
 
-def pred_actual(n, m, X, Y, coefs, model_final):
+def pred_actual(n, m, X_scaled, Y, coefs, model_final):
     
     fig = plt.figure()
-    
-    x_scaled = X.T
-    y_pred = allfun(n, m, x_scaled, coefs)
+
+    y_pred = allfun(n, m, X_scaled, coefs)
     
     x_y = np.linspace(Y.min(), Y.max(), 100)
 
@@ -556,20 +578,20 @@ def pred_actual(n, m, X, Y, coefs, model_final):
     
     # fig = plt.figure()
 
-
+    print(len(Y), len(y_pred))
     plt.scatter(Y, y_pred, color=black, s=15)
     plt.plot(x_y, x_y, linestyle='--', color=red)
     plt.ylabel('Predicted')
     plt.xlabel('Actual')
     
     
-    fig = plt.figure()
+    # fig = plt.figure()
     
-    plt.scatter(y_pred, model_final.resid/Y)
+    # plt.scatter(y_pred, model_final.resid/Y)
     
     return
 
-def residuals_graph(resids):
+def residuals_graph(resids, y=None):
     
     fig = plt.figure()
 
@@ -578,6 +600,7 @@ def residuals_graph(resids):
     plt.ylabel('Residuals')
     plt.xlabel('')
     plt.xticks([])
+
         
     return
 
@@ -618,7 +641,7 @@ def main_regmodel(n, m, method, X, Y, err=None, select=None, test_all=False):
     effects = np.abs(coefs)/(np.sum(np.abs(coefs))-coefs[0])*100
     
     pareto_chart(n, m, coefs, r2_adj, select)
-    pred_actual(n, m, X_final_scaled, Y, coefs, model_final)
+    pred_actual(n, m, X_final_scaled.T, Y, coefs, model_final)
     residuals_graph(model_final.resid)
     
     print('')
@@ -629,7 +652,7 @@ def main_regmodel(n, m, method, X, Y, err=None, select=None, test_all=False):
     print("="*78)
     print('')
     
-    return model_final, coefs, r2, r2_adj, X_final_scaled, X_poly_final_scaled
+    return model_final, coefs, r2, r2_adj, X_final_scaled, X_poly_final_scaled, effects
 
 
 
@@ -757,7 +780,7 @@ def make_2D(min_x, max_x, min_y, max_y, step=100):
         step (int): Number of steps for both x and y axes.
 
     Returns:
-        np.ndarray, np.ndarray: Two NumPy arrays representing the X and Y coordinates of the grid points.
+        [np.ndarray, np.ndarray]: A list of Two NumPy arrays representing the X and Y coordinates of the grid points.
     """
     x = np.linspace(min_x, max_x, step)
     y = np.linspace(min_y, max_y, step)
@@ -766,7 +789,7 @@ def make_2D(min_x, max_x, min_y, max_y, step=100):
     return [X, Y]
 
 #%%
-def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=None, step=100):
+def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=None, step=100, names=None):
 
     if fixposition is None:
         
@@ -793,28 +816,95 @@ def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=Non
             
             Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
             X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
+            # X_units = make_2D(.25, .31, 2.9, 3.1)
+            
             surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
             up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
             surface.show(rendered='browser')
+            
+            ## CONTOUR PLOT
+            
+            fig = plt.figure()
+            levels = np.round(np.linspace(0.047, 0.12, 25), 3)
+            cp = plt.contourf(X_units[0], X_units[1], Z, levels=levels, cmap='magma')
+            # plt.title(f'[{i}, {j}]')
+            fig.colorbar(cp, label='dE / V')
+            
+            if names == None:
+                plt.xlabel(X[i].name)
+            else:
+                plt.xlabel(names[i])
+            if names == None:     
+                plt.ylabel(X[j].name)
+            else:
+                plt.ylabel(names[j])
 
     if type(fixposition) == list:
 
         ij = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
+        ji = [[2,3], [1,3], [1,2], [0,3], [0,2], [0,1]]
 
         for item in [0, 1, 2, 3, 4, 5]:
             
-            i = ij[item][0]
-            j = ij[item][1]
+            i = ji[item][0]
+            j = ji[item][1]
             fixposition = ij[item]
             
             Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
             X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
             surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
-            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
-            surface.show(rendered='browser')
+            print(Z)
+            print(np.round(np.linspace(Z.min()*0.95, Z.max()*1.05, 25), 3))
+            
+            up_layout_surface(surface, X[i].name, X[j].name, 'dE / V', title)
+            # surface.show(rendered='browser')
+            
+            
+            
+            fig = plt.figure()
+            levels = np.round(np.linspace(0.047, 0.12, 25), 3)
+            # levels = np.round(np.linspace(Z.min()*0.95, Z.max()*1.05, 25), 3)
+            # levels = np.round(np.linspace(-.05, 0, 25), 3)
+            cp = plt.contourf(X_units[0], X_units[1], Z, levels=levels, cmap='magma')
+            # plt.title(f'[{i}, {j}]')
+            # fig.colorbar(cp, label='i$_p$ / $\mu$A')
+            fig.colorbar(cp, label='dE / V')
+            
+            if names == None:
+                plt.xlabel(X[i].name)
+            else:
+                plt.xlabel(names[i])
+            if names == None:     
+                plt.ylabel(X[j].name)
+            else:
+                plt.ylabel(names[j])
+                
+            for c in cp.collections:
+                c.set_edgecolor("face")
+                
+            plt.savefig(f'fix\ip-{X[i].name}-{X[j].name}.pdf', bbox_inches='tight')
+           
+            # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+            
+            # ax = plt.gca()
+            
+            # surf = ax.plot_surface(X_units[0], X_units[1], Z, cmap=cm.magma,
+            #             linewidth=0, antialiased=True)
+
+            # # Customize the z axis.
+            # ax.set_zlim(Z.min()*0.85, Z.max()*1.15)
+            # # ax.zaxis.set_major_locator(LinearLocator(10))
+            # # # A StrMethodFormatter is used automatically
+            # # ax.zaxis.set_major_formatter('{x:.02f}')
+            
+            # # Add a color bar which maps values to colors.
+            # ax.view_init(-165, 200)
+            
+            # fig.colorbar(surf, shrink=1, aspect=10)
+            
           
 
-    return
+    return 
 
 #%%
 def plot_surface(X_units, Z, X, Y):
@@ -857,4 +947,94 @@ def plot_surface(X_units, Z, X, Y):
         )
     
     return fig
+
+#%%
+
+def train_test(n, m, coefs, X, Y, X_test, Y_test, fixposition=None, fixvalue = None, title=None, step=100):
+    
+    
+
+    if fixposition is None:
+        
+        Z = make_surface3D(n, m, coefs)
+        
+        X_units = make_2D(X[0].min(), X[0].max(), X[1].min(), X[1].max())
+        
+        surface = plot_surface(X_units, Z, X, Y)
+        
+        up_layout_surface(surface, X[0].name, X[1].name, 'I', title)
+        
+        surface.show(rendered = 'browser')
+        
+    
+    if type(fixposition) == int:
+
+        ij = [[1,2], [0,2], [0,1]]
+
+        for item in [0, 1, 2]:
+            
+            i = ij[item][0]
+            j = ij[item][1]
+            fixposition = item
+            
+            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
+            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
+            X_test = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
+            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
+            
+            surface.add_trace(go.Scatter3d(
+                x=X_test[0],
+                y=X_test[1],
+                z=Y_test,
+                # name='d4',
+                mode='markers',
+                marker=dict(
+                    # size=12,
+                    color='#343E3D',                # set color to an array/list of desired values
+                    # colorscale='Viridis',   # choose a colorscale
+                    opacity=0.4
+                )
+            )
+                 
+                )
+            
+            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
+            surface.show(rendered='browser')
+
+    if type(fixposition) == list:
+
+        ij = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
+
+        for item in [0, 1, 2, 3, 4, 5]:
+            
+            i = ij[item][0]
+            j = ij[item][1]
+            fixposition = ij[item]
+            
+            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
+            print(i, j )
+            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
+            X_test2 = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
+            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
+            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
+            
+            surface.add_trace(go.Scatter3d(
+                x=X_test[i],
+                y=X_test[j],
+                z=Y_test,
+                # name='d4',
+                mode='markers',
+                marker=dict(
+                    # size=12,
+                    color=red,                # set color to an array/list of desired values
+                    # colorscale='Viridis',   # choose a colorscale
+                    opacity=0.4
+                )
+            ))
+            
+            
+            surface.show(rendered='browser')
+          
+
+    return
 
