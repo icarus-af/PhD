@@ -13,6 +13,10 @@ Functions for data handling and plotting raw data.
 
 Functions for statistical modelling.
 
+#### data_treatment_model.py
+
+Functions for analyzing images and their statistical properties.
+
 #### pyDOE.py
 
 Functions for design of experiments.
