@@ -8,6 +8,8 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
 
+from scipy.signal import find_peaks
+
 import pandas as pd
 import numpy as np
 
@@ -64,7 +66,7 @@ def getcm(n, cmap):
     
     return colors
 
-def plot(item, sep, tech, scan, b, Emax, Emin, colors):
+def plot(item, colors=['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF'], Emin=-100000, Emax=100000, b=None, scan=1, sep=',', tech='cv'):
     """
     Reads an {item}.txt file filtered by {scan} column and outputs {peak_o, peak_r, ioveri, dEp}
     Different conditions based on {tech} = 'cv' or 'swv'
@@ -85,7 +87,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
         i = df['WE(1).Current (A)']*1e6
         i_f = i
           
-        if b == 'b':
+        if b is not None:
             
             df_b = pd.read_csv(f"{item}-b.txt", sep=sep)
             
@@ -110,7 +112,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
         i = df['WE(1).δ.Current (A)']*1e6
         i_f = i
           
-        if b == 'b':
+        if b is not None:
             
             df_b = pd.read_csv(f'{item}-b.txt', sep=sep)
             
@@ -147,7 +149,7 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
     
     # If blank is pertinent: figure (1) of the blank
     
-    if b == 'b':
+    if b is not None:
     
         plt.figure(1)
         
@@ -160,21 +162,359 @@ def plot(item, sep, tech, scan, b, Emax, Emin, colors):
         plt.legend(fontsize=10, frameon=False)
         
         # plt.savefig('02082023-b.png', dpi=200, bbox_inches='tight')
-    # plt.figure(1)
+    plt.figure(2)
     
-    # print(E_o)
-    # print(peak_o-0.5*peak_o)
+    print('PEAKPEAK')
+    print(E_o)
+    print('-'*90)
+    print(peak_o)
+    print('-'*90)
+    peaks, _ = find_peaks(i_f, prominence=1)
+    print(peaks)
+    print('-'*90)
     
-    # plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=1)
-    # plt.axvline(x=E_o, ymin=i_f[E_o]-40, ymax=i_f[E_o]+6,linewidth=1, color='r')
-    # plt.axvline(x=E_r, ymin=peak_r-0.5*peak_r, ymax=peak_r+0.5*peak_r,)
-    # plt.xlabel('E / V vs Ag/AgCl')
-    # plt.ylabel('I / $\mu$A')
-    # plt.title('peak detection')
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=1)
+    plt.axvline(x=E[peaks[0]], linewidth=2, color='red')
+    
+    ### plt.axvline(x=E_r, ymin=peak_r-0.5*peak_r, ymax=peak_r+0.5*peak_r,) ###
+    
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    plt.title('peak detection')
     
     return peak_o, peak_r, ioveri, dEp
 
-def peaks(tech, sep, reps, scan, b, Emax, Emin, cmap):
+
+def plot(item, colors=['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF'], Emin=-100000, Emax=100000, b=None, scan=1, sep=',', tech='cv'):
+    """
+    Reads an {item}.txt file filtered by {scan} column and outputs {peak_o, peak_r, ioveri, dEp}
+    Different conditions based on {tech} = 'cv' or 'swv'
+    if b           = 'b' then blank is considered on analysis
+    Emax and Emin  = potential ranges for peak detection
+    """
+    
+    # Read data for Cyclic Voltammetry analysis
+    if tech == 'cv':
+    
+        df = pd.read_csv(f'{item}-a.txt', sep=sep)
+        
+        if 'Scan' in df.columns:
+        
+            df = df[df['Scan'] == scan]
+        
+        E = df['WE(1).Potential (V)']
+        i = df['WE(1).Current (A)']*1e6
+        i_f = i
+          
+        if b is not None:
+            
+            df_b = pd.read_csv(f"{item}-b.txt", sep=sep)
+            
+            if 'Scan' in df_b.columns:
+            
+                df_b = df_b[df_b['Scan'] == scan]
+                
+            i_b = df_b['WE(1).Current (A)']*1e6
+            i_f = i - i_b
+            
+    # Read data for Squared Wave Voltammetry analysis
+    
+    elif tech == 'swv':
+        
+        df = pd.read_csv(f'{item}-a.txt', sep=sep)
+        
+        if 'Scan' in df.columns:
+        
+            df = df[df['Scan'] == scan]
+        
+        E = df['Potential applied (V)']
+        i = df['WE(1).δ.Current (A)']*1e6
+        i_f = i
+          
+        if b is not None:
+            
+            df_b = pd.read_csv(f'{item}-b.txt', sep=sep)
+            
+            if 'Scan' in df_b.columns:
+            
+                df_b = df_b[df_b['Scan'] == scan]
+                
+            i_b = df_b['WE(1).δ.Current (A)']*1e6
+            i_f = i - i_b
+            
+    # Calculate pertinent data analysis
+           
+    peak_o = i_f[E < Emax][E > Emin].max()
+    peak_r = i_f[E < Emax][E > Emin].min()
+    ioveri = abs(peak_o/peak_r)
+    
+    E_o = E[i_f[E < Emax][E > Emin].idxmax()]
+    E_r = E[i_f[E < Emax][E > Emin].idxmin()]
+    dEp = abs(E_o-E_r)
+    
+    # First figure (0) of the full voltammogram
+    
+    plt.figure(0)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=.7)
+    
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    # plt.title('')
+    # plt.ylim(-210,140)
+    plt.legend(fontsize=10, frameon=False)
+    
+    # plt.savefig('20230808.png', dpi=200, bbox_inches='tight')
+    
+    # If blank is pertinent: figure (1) of the blank
+    
+    if b is not None:
+    
+        plt.figure(1)
+        
+        plt.plot(E, i_b, color=colors[item], label=f'{item}-branco', alpha=.7)
+        
+        plt.xlabel('E / V vs Ag/AgCl')
+        plt.ylabel('I / $\mu$A')
+        # plt.title('')
+        # plt.ylim(-210,140)
+        plt.legend(fontsize=10, frameon=False)
+        
+        # plt.savefig('02082023-b.png', dpi=200, bbox_inches='tight')
+    plt.figure(2)
+    
+    print('PEAKPEAK')
+    print(E_o)
+    print('-'*90)
+    print(peak_o)
+    print('-'*90)
+    peaks, _ = find_peaks(i_f, prominence=1)
+    print(peaks)
+    print('-'*90)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=1)
+    # plt.axvline(x=E[peaks[0]], linewidth=2, color='red')
+    
+    ### plt.axvline(x=E_r, ymin=peak_r-0.5*peak_r, ymax=peak_r+0.5*peak_r,) ###
+    
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    plt.title('peak detection')
+    
+    return peak_o, peak_r, ioveri, dEp
+
+#%%
+def plot2(item, colors=['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF'], b=None, scan=1, sep=',', tech='cv', specialpotential=None, specialcurrent=None):
+    """
+    Reads an {item}.txt file filtered by {scan} column and outputs {peak_o, peak_r, ioveri, dEp}
+    Different conditions based on {tech} = 'cv' or 'swv'
+    if b           = 'b' then blank is considered on analysis
+    Emax and Emin  = potential ranges for peak detection
+    """
+    
+    # Read data for Cyclic Voltammetry analysis
+    
+    if tech == 'cv': 
+        current = 'WE(1).Current (A)'
+    if tech == 'swv':
+        current = 'WE(1).δ.Current (A)'
+    if specialcurrent is not None:
+        current = specialcurrent
+        
+    potential='WE(1).Potential (V)'
+    if specialpotential is not None:
+        potential = specialpotential
+    
+    df = pd.read_csv(f'{item}-a.txt', sep=sep)
+    
+    E = df[potential]
+    i = df[current]*1e6
+    i_f = i 
+    
+    if 'Scan' in df.columns:
+    
+        df = df[df['Scan'] == scan]
+    
+        E = df[potential]
+        i = df[current]*1e6
+        i_f = i 
+
+          
+        if b is not None:
+            
+            df_b = pd.read_csv(f"{item}-b.txt", sep=sep)
+            
+            if 'Scan' in df_b.columns:
+            
+                df_b = df_b[df_b['Scan'] == scan]
+                
+            i_b = df_b[current]*1e6
+            i_f = i - i_b
+            
+    # Calculate pertinent data analysis
+    
+    dy = np.gradient(i_f, E)
+    
+    peak_indices = np.where(np.diff(np.sign(dy)))[0]
+           
+    peak_x = [ E[item] for item in peak_indices ]
+    peak_y = [ i_f[item] for item in peak_indices ]
+    
+    if len(peak_indices) != 1:
+    
+        ioveri = abs(peak_y[0]/peak_y[1])
+        E_o = peak_x[0]
+        E_r = peak_x[1]
+        dEp = abs(E_o-E_r)
+    
+    # First figure (0) of the full voltammogram
+    
+    plt.figure(0)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=.7)
+    
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    # plt.title('')
+    # plt.ylim(-210,140)
+    plt.legend(fontsize=10, frameon=False)
+    
+    # plt.savefig('20230808.png', dpi=200, bbox_inches='tight')
+    
+    # If blank is pertinent: figure (1) of the blank
+    
+    if b is not None:
+    
+        plt.figure(1)
+        
+        plt.plot(E, i_b, color=colors[item], label=f'{item}-branco', alpha=.7)
+        
+        plt.xlabel('E / V vs Ag/AgCl')
+        plt.ylabel('I / $\mu$A')
+        # plt.title('')
+        # plt.ylim(-210,140)
+        plt.legend(fontsize=10, frameon=False)
+        
+        # plt.savefig('02082023-b.png', dpi=200, bbox_inches='tight')
+    plt.figure(2)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=1)
+    plt.scatter(peak_x, peak_y, linewidth=2, color=red)
+
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    plt.title('peak detection')
+    
+    return E, i
+
+#%%
+
+def plot3(item, colors=['#343E3D', '#FF5252', '#FFCE54', '#38E4AE', '#51B9FF', '#FB91FF'], b=None, scan=1, sep=',', tech='cv', specialpotential=None, specialcurrent=None):
+    """
+    Reads an {item}.txt file filtered by {scan} column and outputs {peak_o, peak_r, ioveri, dEp}
+    Different conditions based on {tech} = 'cv' or 'swv'
+    if b           = 'b' then blank is considered on analysis
+    Emax and Emin  = potential ranges for peak detection
+    """
+    
+    # Read data for Cyclic Voltammetry analysis
+    
+    if tech == 'cv': 
+        current = 'WE(1).Current (A)'
+    if tech == 'swv':
+        current = 'WE(1).δ.Current (A)'
+    if specialcurrent is not None:
+        current = specialcurrent
+        
+    potential='WE(1).Potential (V)'
+    if specialpotential is not None:
+        potential = specialpotential
+    
+    df = pd.read_csv(f'{item}-a.txt', sep=sep)
+    
+    E = df[potential]
+    i = df[current]*1e6
+    i_f = i 
+    
+    if 'Scan' in df.columns:
+    
+        df = df[df['Scan'] == scan]
+    
+        E = df[potential]
+        i = df[current]*1e6
+        i_f = i 
+
+          
+        if b is not None:
+            
+            df_b = pd.read_csv(f"{item}-b.txt", sep=sep)
+            
+            if 'Scan' in df_b.columns:
+            
+                df_b = df_b[df_b['Scan'] == scan]
+                
+            i_b = df_b[current]*1e6
+            i_f = i - i_b
+            
+    # Calculate pertinent data analysis
+    
+    dy = np.gradient(i_f, E)
+    
+    peak_indices = np.concatenate([find_peaks(i, prominence=1)[0], find_peaks(-i, prominence=1)[0]])
+           
+    peak_x = [ E[item] for item in peak_indices ]
+    peak_y = [ i_f[item] for item in peak_indices ]
+    
+    if len(peak_indices) != 1:
+    
+        ioveri = abs(peak_y[0]/peak_y[1])
+        E_o = peak_x[0]
+        E_r = peak_x[1]
+        dEp = abs(E_o-E_r)
+    
+    # First figure (0) of the full voltammogram
+    
+    plt.figure(0)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=.7)
+    
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    # plt.title('')
+    # plt.ylim(-210,140)
+    plt.legend(fontsize=10, frameon=False)
+    
+    # plt.savefig('20230808.png', dpi=200, bbox_inches='tight')
+    
+    # If blank is pertinent: figure (1) of the blank
+    
+    if b is not None:
+    
+        plt.figure(1)
+        
+        plt.plot(E, i_b, color=colors[item], label=f'{item}-branco', alpha=.7)
+        
+        plt.xlabel('E / V vs Ag/AgCl')
+        plt.ylabel('I / $\mu$A')
+        # plt.title('')
+        # plt.ylim(-210,140)
+        plt.legend(fontsize=10, frameon=False)
+        
+        # plt.savefig('02082023-b.png', dpi=200, bbox_inches='tight')
+    plt.figure(2)
+    
+    plt.plot(E, i_f, color=colors[item], label=f'{item}', alpha=1)
+    plt.scatter(peak_x, peak_y, linewidth=2, color=red)
+
+    plt.xlabel('E / V vs Ag/AgCl')
+    plt.ylabel('I / $\mu$A')
+    plt.title('peak detection')
+    
+    return E, i
+
+
+#%%
+def peaks(reps, cmap, Emin=-100000, Emax=100000, b=None, scan=1, sep=',', tech='cv'):
     """
     Runs a loop of plots() functions and prints the results accordingly
     colors         = use getcm() to determine colors
@@ -184,13 +524,13 @@ def peaks(tech, sep, reps, scan, b, Emax, Emin, cmap):
     
     t = stats.t.ppf(1-0.025, reps-1)
     
-    if b == 'b':
+    if b is not None:
         
-        peaks = np.array( [plot(item, sep, tech, scan, 'b', Emax, Emin, colors) for item in np.arange(0,reps)] ).T
+        peaks = np.array( [plot(item, colors=colors, Emin=Emin, Emax=Emax, tech=tech, sep=sep, scan=scan, b='b') for item in np.arange(0,reps)] ).T
     
     else: 
         
-        peaks = np.array( [plot(item, sep, tech, scan, 0, Emax, Emin, colors) for item in np.arange(0,reps)] ).T
+        peaks = np.array( [plot(item, colors=colors, Emin=Emin, Emax=Emax, tech=tech, sep=sep, scan=scan) for item in np.arange(0,reps)] ).T
     
     anodic = peaks[0]
     
@@ -329,12 +669,3 @@ def boxplots(my_dict):
     ax.set_xticklabels(my_dict.keys())
     
     return fig
-
-#%%
-
-colors = getcm(19, 'PuBuGn')
-#%%
-peaks('swv',',',19,1,'b',1.25,.75,'viridis')
-
-peaks('csv',)
-

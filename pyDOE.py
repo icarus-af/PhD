@@ -13,41 +13,70 @@ from matplotlib import rcParams
 
 import random
 
+import numpy as np
+
+import pandas as pd
+
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 pio.renderers.default='browser'
 
+def add_cp(df, reps):
+    
+    means = [df.iloc[:, i].mean() for i in np.arange(len(df.T))]
+
+    while reps != 0:
+        reps=reps-1
+        print(reps)
+        df.loc[len(df)] = means
+        
+def random_order(df):
+    
+    df_random = df
+    
+    l = list(range(len(df)))
+    random.shuffle(l)
+    df_random['order'] = l
+
+    print(df_random.sort_values(by=['order']))
+    
+    return df_random
+
+
+#%%
+
 xlabel = 'Power'
 xrange = [2.5, 3]
 ylabel = 'Separation'
-yrange = [15, 18]
+yrange = [0.015, 0.018]
 zlabel = 'Height'
-zrange = [7, 7]
+zrange = [7, 11]
+ulabel = 'Velocity'
+urange = [20,100]
 
-df = build.full_fact(
+df = build.box_behnken(
+    
     {xlabel: xrange,
      ylabel: yrange,
      zlabel: zrange,
-     
+     ulabel: urange,
      }
-    
-    
-    )
+)
 
-#pc
-df.loc[len(df)] = [(xrange[0]+xrange[1])/2, (yrange[0]+yrange[1])/2, (zrange[0]+zrange[1])/2]
+add_cp(df, 3)
+df_random = random_order(df)
 
-#fix decimal
-df[ylabel] = df[ylabel]/100
+
+#%%
+
+
+#%%
+
 
 x = df[xlabel]
 y = df[ylabel]
 z = df[zlabel]
-
-
-df = df.drop_duplicates()
-
 
 # read_write.write_csv(df, filename='pyDOE.csv')
 fig = plt.figure()
@@ -91,12 +120,3 @@ ax.set_zticks([z.min(), (zrange[0]+zrange[1])/2, z.max()])
 
 # fig.show()
 
-l = list(range(len(df)))
-random.shuffle(l)
-
-
-df['order'] = l
-
-print(df.sort_values(by=['order']))
-
-df2=df

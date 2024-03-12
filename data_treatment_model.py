@@ -90,6 +90,62 @@ def poly_scale(df, degree):
     
     return df_scaled, df_poly_scaled, scaler
 
+def reg_model2(y, x, method='OLS', err=None):
+    """
+    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
+    """
+    
+    x = sm.add_constant(x)
+    
+    if method == 'OLS':
+    
+        model = sm.OLS(y, x).fit()
+        
+    elif method == 'WLS':
+        
+        weights =  1/(err**2)
+        model = sm.WLS(y, x, weights=weights).fit()
+        
+    coefs = np.array(model.params)    
+    r2 = model.rsquared
+    r2_adj = model.rsquared_adj
+    
+    print(model.summary())
+    
+    return model, coefs, r2, r2_adj
+
+def linreg_plot(x, y, coefs, xlabel='x', ylabel='y', title=''):
+    """
+    Create a scatter plot with a linear regression line.
+    
+    Parameters:
+    x (array-like): Independent variable data.
+    y (array-like): Dependent variable data.
+    coefs (array-like): Linear regression coefficients [intercept, slope].
+    xlabel (str, optional): X-axis label (default: 'x').
+    ylabel (str, optional): Y-axis label (default: 'y').
+    title (str, optional): Plot title.
+    
+    Example:
+    linreg_plot(x_data, y_data, [intercept, slope], xlabel='Time', ylabel='Distance', title='Linear Regression')
+    plt.show()
+    """
+    x = np.array(x)
+    y = np.array(y)
+    
+    xp = np.linspace(x.min(), x.max(), 100)
+    yp = coefs[0] + coefs[1]*xp
+    
+    plt.scatter(x, y, color=black)
+    plt.plot(xp, yp, color=red)
+    
+    plt.xlabel(f'{xlabel}')
+    plt.ylabel(f'{ylabel}')
+    
+    plt.title(f'{title}')
+    
+    return
+    
 def reg_model(y, x, method='OLS', err=None):
     """
     Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
@@ -110,6 +166,8 @@ def reg_model(y, x, method='OLS', err=None):
     print(model.summary())
     
     return model, coefs, r2, r2_adj
+
+
 
 
 def make_surface3D(x1, x2, x3, coefs, fun):
@@ -425,6 +483,7 @@ def allfun(n, m, X, coefs):
                 return (coefs[0] + coefs[1]*x1 + coefs[2]*x2 + coefs[3]*x3 + coefs[4]*x4 +  coefs[5]*x1*x1 +coefs[6]*x1*x2 + coefs[7]*x1*x3 + coefs[8]*x1*x4 + coefs[9]*x2*x2 + coefs[10]*x2*x3 + coefs[11]*x2*x4 +             coefs[12]*x3*x3 + coefs[13]*x3*x4 + coefs[14]*x4*x4 +           coefs[15]*x1*x1*x1 +coefs[16]*x1*x1*x2 + coefs[17]*x1*x1*x3 + coefs[18]*x1*x1*x4 +            coefs[19]*x1*x2*x2 + coefs[20]*x1*x2*x3 + coefs[21]*x1*x2*x4 +             coefs[22]*x1*x3*x3 + coefs[23]*x1*x3*x4 +             coefs[24]*x1*x4*x4 +             coefs[25]*x2*x2*x2 + coefs[26]*x2*x2*x3 +coefs[27]*x2*x2*x4 +             coefs[28]*x2*x3*x3 + coefs[29]*x2*x3*x4 +            coefs[30]*x2*x4*x4 +             coefs[31]*x3*x3*x3 + coefs[32]*x3*x3*x4 +             coefs[33]*x3*x4*x4 +            coefs[34]*x4*x4*x4 +            coefs[35]*x1*x1*x1*x1 + coefs[36]*x1*x1*x1*x2 +coefs[37]*x1*x1*x1*x3 + coefs[38]*x1*x1*x1*x4 +             coefs[39]*x1*x1*x2*x2 + coefs[40]*x1*x1*x2*x3 + coefs[41]*x1*x1*x2*x4 +             coefs[42]*x1*x1*x3*x3 + coefs[43]*x1*x1*x3*x4 +             coefs[44]*x1*x1*x4*x4 +             coefs[45]*x1*x2*x2*x2 + coefs[46]*x1*x2*x2*x3 + coefs[47]*x1*x2*x2*x4 +             coefs[48]*x1*x2*x3*x3 + coefs[49]*x1*x2*x3*x4 +             coefs[50]*x1*x2*x4*x4 +             coefs[51]*x1*x3*x3*x3 + coefs[52]*x1*x3*x3*x4 +             coefs[53]*x1*x3*x4*x4 +             coefs[54]*x1*x4*x4*x4 +             coefs[55]*x2*x2*x2*x2 + coefs[56]*x2*x2*x2*x3 + coefs[57]*x2*x2*x2*x4 +             coefs[58]*x2*x2*x3*x3 + coefs[59]*x2*x2*x3*x4 +             coefs[60]*x2*x2*x4*x4 +           coefs[61]*x2*x3*x3*x3 + coefs[62]*x2*x3*x3*x4 +             coefs[63]*x2*x3*x4*x4 +             coefs[64]*x2*x4*x4*x4 +             coefs[65]*x3*x3*x3*x3 + coefs[66]*x3*x3*x3*x4 +             coefs[67]*x3*x3*x4*x4 +             coefs[68]*x3*x4*x4*x4 +             coefs[69]*x4*x4*x4*x4        )
             
     return fun(X, coefs)      
+
 ##36, 39, 45, 49(HUGE?), 56, 58,61
 #%%
 # def main_fun_calculator(n, m, X, coefs):
@@ -655,6 +714,36 @@ def main_regmodel(n, m, method, X, Y, err=None, select=None, test_all=False):
     return model_final, coefs, r2, r2_adj, X_final_scaled, X_poly_final_scaled, effects
 
 
+def train_test(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=None, step=100, pct=0.75):
+    
+    
+    
+    n_train = round(len(df)*pct)
+    
+    train = df.sample(n=n_train)
+    test = df.drop(train.index)
+
+    x1_test = test['alt']
+    x2_test = test['sep']
+    x3_test = test['vel']
+    x4_test = test['pot']
+
+    X_test = np.array([x1_test, x2_test, x3_test, x4_test])
+    Y_test = test['dE']
+    errors_test = test['dE_std']
+
+    x1 = train['alt']
+    x2 = train['sep']
+    x3 = train['vel']
+    x4 = train['pot']
+
+    X = [x1, x2, x3, x4]
+    Y = train['dE']
+
+    errors = train['dE_std']
+          
+
+    return
 
 
 #%%
@@ -714,13 +803,6 @@ def up_layout_surface(fig, x, y, z, title=None):
         
         
         )
-    
-def make_surface3D(x1, x2, x3, coefs, fun):
-        
-    surf = np.array(fun(np.ravel(x1), np.ravel(x2), np.ravel(x3), coefs))
-    surface = surf.reshape((100,100))
-        
-    return surface
 
 def make_surface3D(n, m, coefs, fixposition = None, fixvalue = None):
     
@@ -747,6 +829,9 @@ def make_surface3D(n, m, coefs, fixposition = None, fixvalue = None):
     elif type(fixposition) is list:
         
         X = [fixvalue,fixvalue,fixvalue,fixvalue]
+        
+        X[fixposition[0]] = fixvalue[0]
+        X[fixposition[1]] = fixvalue[1]
     
         if fixposition == [0, 1]:
             X[2], X[3] = scaled_X1, scaled_X2
@@ -767,6 +852,7 @@ def make_surface3D(n, m, coefs, fixposition = None, fixvalue = None):
             X[0], X[1] = scaled_X1, scaled_X2
 
     return allfun(n, m, X, coefs)
+
 
 def make_2D(min_x, max_x, min_y, max_y, step=100):
     """
@@ -852,10 +938,7 @@ def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=Non
             
             Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
             X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
-            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
-            print(Z)
-            print(np.round(np.linspace(Z.min()*0.95, Z.max()*1.05, 25), 3))
-            
+            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)   
             up_layout_surface(surface, X[i].name, X[j].name, 'dE / V', title)
             # surface.show(rendered='browser')
             
@@ -882,7 +965,7 @@ def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=Non
             for c in cp.collections:
                 c.set_edgecolor("face")
                 
-            plt.savefig(f'fix\ip-{X[i].name}-{X[j].name}.pdf', bbox_inches='tight')
+            # plt.savefig(f'ip-{X[i].name}-{X[j].name}.pdf', bbox_inches='tight')
            
             # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
             
@@ -949,92 +1032,4 @@ def plot_surface(X_units, Z, X, Y):
     return fig
 
 #%%
-
-def train_test(n, m, coefs, X, Y, X_test, Y_test, fixposition=None, fixvalue = None, title=None, step=100):
-    
-    
-
-    if fixposition is None:
-        
-        Z = make_surface3D(n, m, coefs)
-        
-        X_units = make_2D(X[0].min(), X[0].max(), X[1].min(), X[1].max())
-        
-        surface = plot_surface(X_units, Z, X, Y)
-        
-        up_layout_surface(surface, X[0].name, X[1].name, 'I', title)
-        
-        surface.show(rendered = 'browser')
-        
-    
-    if type(fixposition) == int:
-
-        ij = [[1,2], [0,2], [0,1]]
-
-        for item in [0, 1, 2]:
-            
-            i = ij[item][0]
-            j = ij[item][1]
-            fixposition = item
-            
-            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
-            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
-            X_test = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
-            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
-            
-            surface.add_trace(go.Scatter3d(
-                x=X_test[0],
-                y=X_test[1],
-                z=Y_test,
-                # name='d4',
-                mode='markers',
-                marker=dict(
-                    # size=12,
-                    color='#343E3D',                # set color to an array/list of desired values
-                    # colorscale='Viridis',   # choose a colorscale
-                    opacity=0.4
-                )
-            )
-                 
-                )
-            
-            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
-            surface.show(rendered='browser')
-
-    if type(fixposition) == list:
-
-        ij = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
-
-        for item in [0, 1, 2, 3, 4, 5]:
-            
-            i = ij[item][0]
-            j = ij[item][1]
-            fixposition = ij[item]
-            
-            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
-            print(i, j )
-            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
-            X_test2 = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
-            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
-            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
-            
-            surface.add_trace(go.Scatter3d(
-                x=X_test[i],
-                y=X_test[j],
-                z=Y_test,
-                # name='d4',
-                mode='markers',
-                marker=dict(
-                    # size=12,
-                    color=red,                # set color to an array/list of desired values
-                    # colorscale='Viridis',   # choose a colorscale
-                    opacity=0.4
-                )
-            ))
-            
-            
-            surface.show(rendered='browser')
-          
-
-    return
 

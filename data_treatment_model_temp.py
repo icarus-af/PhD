@@ -248,7 +248,7 @@ def get_allcoefs(n, m):
             
         elif m == 3:
             
-            allcoefs = {0,  1,  2,  3,  4,  5}
+            allcoefs = {0,  1,  2,  3}
             
     if n == 2:
         
@@ -530,12 +530,11 @@ def pareto_chart(n, m, coefs, r2_adj, select=None):
 
     return
 
-def pred_actual(n, m, X, Y, coefs, model_final):
+def pred_actual(n, m, X_scaled, Y, coefs, model_final):
     
     fig = plt.figure()
-    
-    x_scaled = X.T
-    y_pred = allfun(n, m, x_scaled, coefs)
+
+    y_pred = allfun(n, m, X_scaled, coefs)
     
     x_y = np.linspace(Y.min(), Y.max(), 100)
 
@@ -556,20 +555,20 @@ def pred_actual(n, m, X, Y, coefs, model_final):
     
     # fig = plt.figure()
 
-
+    print(len(Y), len(y_pred))
     plt.scatter(Y, y_pred, color=black, s=15)
     plt.plot(x_y, x_y, linestyle='--', color=red)
     plt.ylabel('Predicted')
     plt.xlabel('Actual')
     
     
-    fig = plt.figure()
+    # fig = plt.figure()
     
-    plt.scatter(y_pred, model_final.resid/Y)
+    # plt.scatter(y_pred, model_final.resid/Y)
     
     return
 
-def residuals_graph(resids):
+def residuals_graph(resids, y=None):
     
     fig = plt.figure()
 
@@ -578,6 +577,7 @@ def residuals_graph(resids):
     plt.ylabel('Residuals')
     plt.xlabel('')
     plt.xticks([])
+
         
     return
 
@@ -618,7 +618,7 @@ def main_regmodel(n, m, method, X, Y, err=None, select=None, test_all=False):
     effects = np.abs(coefs)/(np.sum(np.abs(coefs))-coefs[0])*100
     
     pareto_chart(n, m, coefs, r2_adj, select)
-    pred_actual(n, m, X_final_scaled, Y, coefs, model_final)
+    pred_actual(n, m, X_final_scaled.T, Y, coefs, model_final)
     residuals_graph(model_final.resid)
     
     print('')
@@ -814,7 +814,7 @@ def main_surface(n, m, coefs, X, Y, fixposition=None, fixvalue = None, title=Non
             surface.show(rendered='browser')
           
 
-    return
+    return 
 
 #%%
 def plot_surface(X_units, Z, X, Y):
@@ -857,4 +857,94 @@ def plot_surface(X_units, Z, X, Y):
         )
     
     return fig
+
+#%%
+
+def train_test(n, m, coefs, X, Y, X_test, Y_test, fixposition=None, fixvalue = None, title=None, step=100):
+    
+    
+
+    if fixposition is None:
+        
+        Z = make_surface3D(n, m, coefs)
+        
+        X_units = make_2D(X[0].min(), X[0].max(), X[1].min(), X[1].max())
+        
+        surface = plot_surface(X_units, Z, X, Y)
+        
+        up_layout_surface(surface, X[0].name, X[1].name, 'I', title)
+        
+        surface.show(rendered = 'browser')
+        
+    
+    if type(fixposition) == int:
+
+        ij = [[1,2], [0,2], [0,1]]
+
+        for item in [0, 1, 2]:
+            
+            i = ij[item][0]
+            j = ij[item][1]
+            fixposition = item
+            
+            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
+            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
+            X_test = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
+            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
+            
+            surface.add_trace(go.Scatter3d(
+                x=X_test[0],
+                y=X_test[1],
+                z=Y_test,
+                # name='d4',
+                mode='markers',
+                marker=dict(
+                    # size=12,
+                    color='#343E3D',                # set color to an array/list of desired values
+                    # colorscale='Viridis',   # choose a colorscale
+                    opacity=0.4
+                )
+            )
+                 
+                )
+            
+            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
+            surface.show(rendered='browser')
+
+    if type(fixposition) == list:
+
+        ij = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
+
+        for item in [0, 1, 2, 3, 4, 5]:
+            
+            i = ij[item][0]
+            j = ij[item][1]
+            fixposition = ij[item]
+            
+            Z = make_surface3D(n, m, coefs, fixposition=fixposition, fixvalue=fixvalue)
+            print(i, j )
+            X_units = make_2D(X[i].min(), X[i].max(), X[j].min(), X[j].max())
+            X_test2 = make_2D(X_test[i].min(), X_test[i].max(), X_test[j].min(), X_test[j].max())
+            surface = plot_surface(X_units, Z, [X[i], X[j]], Y)
+            up_layout_surface(surface, X[i].name, X[j].name, 'I', title)
+            
+            surface.add_trace(go.Scatter3d(
+                x=X_test[i],
+                y=X_test[j],
+                z=Y_test,
+                # name='d4',
+                mode='markers',
+                marker=dict(
+                    # size=12,
+                    color=red,                # set color to an array/list of desired values
+                    # colorscale='Viridis',   # choose a colorscale
+                    opacity=0.4
+                )
+            ))
+            
+            
+            surface.show(rendered='browser')
+          
+
+    return
 

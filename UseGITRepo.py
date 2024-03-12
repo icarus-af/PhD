@@ -50,17 +50,29 @@ model_final, coefs, r2, r2_adj, X_final_scaled, X_poly_final_scaled = dt.main_re
 
 #%%
 
-df2=df.groupby(np.arange(len(df))//3).mean()
-df3=df.groupby(np.arange(len(df))//3).std(ddof=1)
+# df2=df.groupby(np.arange(len(df))//3).mean()
+# df3=df.groupby(np.arange(len(df))//3).std(ddof=1)
 
 
-dps = [ [df2['alt'][i],df2['sep'][i],df2['vel'][i],df2['pot'][i]] for i in range(17)] 
+dps = [ [df['alt'][i],df['sep'][i],df['vel'][i],df['pot'][i]] for i in range(len(df))] 
 
-plt.errorbar(np.linspace(0,1,17), df2['dE'], color=black, yerr=df3['dE'], fmt='o')
+x = np.arange(0,len(df))
+
+err = df['dE_std']
+Y = df['dE']
+
+# fig=plt.figure(figsize=(12,6))
+
+plt.errorbar(x, Y, color='black', yerr=err, fmt='o')
 
 plt.ylabel('dE')
 plt.xlabel('[alt, sep, vel, pot]')
-plt.xticks([])
+
+ax=plt.gca()
+
+xtickslabels = [f'{str(i)}' for i in dps]
+ax.set_xticks(x)
+ax.set_xticks(ticks=x, labels=xtickslabels, rotation=90)
 
 #%%
 
