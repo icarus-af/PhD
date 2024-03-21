@@ -72,7 +72,15 @@ def add_Scatter(fig, df, color, name):
     return
 
 def scale(df):
+    """
+    Scale the input DataFrame using Min-Max scaling.
     
+    Parameters:
+    - df: Input DataFrame to be scaled.
+    
+    Returns:
+    - df_scaled: Scaled DataFrame using Min-Max scaling.
+    """
     scaler = MinMaxScaler()
     
     df_scaled = scaler.fit_transform(df)
@@ -80,6 +88,18 @@ def scale(df):
     return df_scaled
 
 def poly_scale(df, degree):
+    """
+    Scale the input DataFrame and perform polynomial feature expansion.
+    
+    Parameters:
+    - df: Input DataFrame to be scaled and transformed.
+    - degree: Degree of the polynomial features to be generated.
+    
+    Returns:
+    - df_scaled: Scaled DataFrame using Min-Max scaling.
+    - df_poly_scaled: Transformed DataFrame with polynomial features added.
+    - scaler: Min-Max scaler object used for scaling.
+    """
     
     poly = PolynomialFeatures(degree=degree)
     scaler = MinMaxScaler()
@@ -89,30 +109,6 @@ def poly_scale(df, degree):
     df_poly_scaled = poly.fit_transform(df_scaled)
     
     return df_scaled, df_poly_scaled, scaler
-
-def reg_model2(y, x, method='OLS', err=None):
-    """
-    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
-    """
-    
-    x = sm.add_constant(x)
-    
-    if method == 'OLS':
-    
-        model = sm.OLS(y, x).fit()
-        
-    elif method == 'WLS':
-        
-        weights =  1/(err**2)
-        model = sm.WLS(y, x, weights=weights).fit()
-        
-    coefs = np.array(model.params)    
-    r2 = model.rsquared
-    r2_adj = model.rsquared_adj
-    
-    print(model.summary())
-    
-    return model, coefs, r2, r2_adj
 
 def linreg_plot(x, y, coefs, xlabel='x', ylabel='y', title=''):
     """
@@ -148,8 +144,21 @@ def linreg_plot(x, y, coefs, xlabel='x', ylabel='y', title=''):
     
 def reg_model(y, x, method='OLS', err=None):
     """
-    Fits and report a linear model ({method} = 'OLS' or 'WLS') for y(x) returning (model, coefs, r2, r2_adj)
+    Fits a linear regression model based on the specified method and returns model statistics.
+
+    Parameters:
+    - y: Dependent variable (array-like) for regression.
+    - x: Independent variable (array-like) for regression.
+    - method: Method for regression ('OLS' for Ordinary Least Squares or 'WLS' for Weighted Least Squares, default: 'OLS').
+    - err: Array-like representing errors for Weighted Least Squares method (default: None).
+
+    Returns:
+    - model: Fitted regression model object.
+    - coefs: Coefficients of the fitted model.
+    - r2: R-squared value indicating the goodness of fit.
+    - r2_adj: Adjusted R-squared value accounting for model complexity.
     """
+    
     if method == 'OLS':
     
         model = sm.OLS(y, x).fit()
@@ -171,6 +180,17 @@ def reg_model(y, x, method='OLS', err=None):
 
 
 def make_surface3D(x1, x2, x3, coefs, fun):
+    """
+    Generate a 2D surface based on the coefficients and the specified function.
+    
+    Parameters:
+    - x1, x2, x3: 1D arrays representing the coordinates for each axis.
+    - coefs: Coefficients used in the function.
+    - fun: Function used to calculate the surface values.
+    
+    Returns:
+    - surface: 2D array representing the generated 3D surface.
+    """
     
     surf = np.array(fun(np.ravel(x1), np.ravel(x2), np.ravel(x3), coefs))
     surface = surf.reshape((100,100))
@@ -178,6 +198,17 @@ def make_surface3D(x1, x2, x3, coefs, fun):
     return surface
 
 def make_surface4D(x1, x2, x3, x4, coefs, fun):
+    """
+    Generate a 2D surface based on the coefficients and the specified function.
+    
+    Parameters:
+    - x1, x2, x3, x4: 1D arrays representing the coordinates for each axis.
+    - coefs: Coefficients used in the function.
+    - fun: Function used to calculate the surface values.
+    
+    Returns:
+    - surface: 2D array representing the generated 3D surface.
+    """
     
     surf = np.array(fun(np.ravel(x1), np.ravel(x2), np.ravel(x3), np.ravel(x4), coefs))
     surface = surf.reshape((100,100))
