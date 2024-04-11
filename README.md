@@ -13,7 +13,7 @@ Functions for data handling and plotting raw data.
 
 Functions for statistical modelling.
 
-#### data_treatment_model.py
+#### data_treatment_photos.py
 
 Functions for analyzing images and their statistical properties.
 
