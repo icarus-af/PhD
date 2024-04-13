@@ -16,7 +16,3 @@ Functions for statistical modelling.
 #### data_treatment_photos.py
 
 Functions for analyzing images and their statistical properties.
-
-#### pyDOE.py
-
-Functions for design of experiments.
